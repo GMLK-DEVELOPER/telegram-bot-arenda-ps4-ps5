@@ -1,0 +1,9 @@
+{
+  "admin_chat_id": "762139684",
+  "require_approval": true,
+  "notifications_enabled": true,
+  "max_rental_hours": 24,
+  "default_rental_price": 10,
+  "working_hours_start": "09:00",
+  "working_hours_end": "22:00"
+}
