@@ -1,8 +1,16 @@
 {
-  "admin": {
-    "username": "admin",
-    "password": "admin123",
-    "role": "admin",
-    "created_at": "2024-01-15T10:00:00"
+  "admin":{
+    "username":"admin",
+    "password":"admin123",
+    "role":"admin",
+    "created_at":"2024-01-15T10:00:00"
+  },
+  "pavel":{
+    "username":"pavel",
+    "password":"zxcvbnm1",
+    "role":"admin",
+    "chat_id":"id: 2042803150",
+    "created_at":"2025-08-29T21:08:10.318493",
+    "created_by":"admin"
   }
 }

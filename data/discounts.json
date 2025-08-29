@@ -1,1 +1,14 @@
-{}
+{
+  "dc9a95fd-ce03-4676-8acc-f3d753e4896b":{
+    "id":"dc9a95fd-ce03-4676-8acc-f3d753e4896b",
+    "console_id":"d9374271-5e58-4f8a-a3b8-fd4ffddb9649",
+    "type":"fixed",
+    "value":50.0,
+    "start_date":"2025-09-04T00:00:00",
+    "end_date":"2025-09-10T23:59:59",
+    "min_hours":0,
+    "description":"Sell",
+    "active":true,
+    "created_at":"2025-08-29T21:34:23.068833"
+  }
+}

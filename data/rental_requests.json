@@ -1,3 +1,25 @@
 {
-
+  "ab6f3a5b-e77d-440d-9593-c07b63af0899": {
+    "id": "ab6f3a5b-e77d-440d-9593-c07b63af0899",
+    "user_id": "7766232942",
+    "console_id": "d9374271-5e58-4f8a-a3b8-fd4ffddb9649",
+    "start_time": "2025-09-04T00:00:00",
+    "estimated_end_time": "2025-09-05T00:00:00",
+    "duration_hours": 24,
+    "total_cost": 12000,
+    "status": "completed",
+    "created_at": "2025-08-29T21:35:09.032072",
+    "rental_id": "6f10250b-f6fa-4dd1-92f2-0ed56aee7ed8"
+  },
+  "8901f0ff-c621-4e24-9464-be63caf059ae": {
+    "id": "8901f0ff-c621-4e24-9464-be63caf059ae",
+    "user_id": "2042803150",
+    "console_id": "a30d909b-394c-44e3-b6e2-c5e7a1a310d5",
+    "start_time": "2025-08-16T00:00:00",
+    "estimated_end_time": "2025-08-23T00:00:00",
+    "duration_hours": 168,
+    "total_cost": 2016,
+    "status": "approved",
+    "created_at": "2025-08-29T21:48:26.558415"
+  }
 }

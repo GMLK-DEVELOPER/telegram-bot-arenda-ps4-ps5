@@ -28,10 +28,19 @@
     "873ad140-7ca5-44b7-865a-4a87b173778e":[
       "2025-08-23",
       "2025-08-29"
+    ],
+    "a30d909b-394c-44e3-b6e2-c5e7a1a310d5":[
+      "2025-09-02"
     ]
   },
   "special_schedules":{},
-  "holidays":[],
+  "holidays":[
+    {
+      "date":"2025-09-01",
+      "name":"superr price",
+      "working":false
+    }
+  ],
   "working_days":[
     1,
     2,

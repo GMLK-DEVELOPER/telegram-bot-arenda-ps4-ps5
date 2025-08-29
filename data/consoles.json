@@ -1,3 +1,30 @@
 {
-
+  "a30d909b-394c-44e3-b6e2-c5e7a1a310d5": {
+    "id": "a30d909b-394c-44e3-b6e2-c5e7a1a310d5",
+    "name": "test-ps4",
+    "model": "PS4 Slim",
+    "games": [
+      "fifa"
+    ],
+    "rental_price": 12,
+    "sale_price": 0,
+    "show_photo_in_bot": true,
+    "status": "available",
+    "created_at": "2025-08-29T21:00:34.722210"
+  },
+  "d9374271-5e58-4f8a-a3b8-fd4ffddb9649": {
+    "id": "d9374271-5e58-4f8a-a3b8-fd4ffddb9649",
+    "name": "Ps4-sliv",
+    "model": "PS4 Slim",
+    "games": [
+      "God of war"
+    ],
+    "rental_price": 500,
+    "sale_price": 0,
+    "show_photo_in_bot": true,
+    "status": "available",
+    "created_at": "2025-08-29T21:02:35.087516",
+    "updated_at": "2025-08-29T21:03:16.760585",
+    "photo_path": "/static/img/console/d9374271-5e58-4f8a-a3b8-fd4ffddb9649.jpg"
+  }
 }

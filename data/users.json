@@ -1,3 +1,49 @@
 {
-
+  "2042803150": {
+    "id": "2042803150",
+    "username": null,
+    "first_name": "Pavel",
+    "last_name": null,
+    "is_banned": false,
+    "rentals": [],
+    "total_spent": 0,
+    "joined_at": "2025-08-29T20:58:34.009703",
+    "phone_number": "37368414056",
+    "full_name": "Curcovici pavel",
+    "registration_step": "completed",
+    "verification_step": "passport_front",
+    "pending_rental_id": "a30d909b-394c-44e3-b6e2-c5e7a1a310d5"
+  },
+  "7766232942": {
+    "id": "7766232942",
+    "username": "swabyservices",
+    "first_name": "swa",
+    "last_name": "services by",
+    "is_banned": false,
+    "rentals": [],
+    "total_spent": 500,
+    "joined_at": "2025-08-29T21:00:05.472621",
+    "phone_number": "+37376679892",
+    "full_name": "qw",
+    "registration_step": "completed",
+    "verification_step": "completed",
+    "pending_rental_id": "d9374271-5e58-4f8a-a3b8-fd4ffddb9649",
+    "passport_front_file": "qw/passport_front.jpg",
+    "passport_back_file": "qw/passport_back.jpg",
+    "selfie_file": "qw/selfie_with_passport.jpg",
+    "loyalty_bonus": 100
+  },
+  "762139684": {
+    "id": "762139684",
+    "username": "yuliitezary",
+    "first_name": "Iulian🫥",
+    "last_name": null,
+    "is_banned": false,
+    "rentals": [],
+    "total_spent": 0,
+    "joined_at": "2025-08-29T21:03:29.485215",
+    "phone_number": "37368289438",
+    "full_name": "Cesar",
+    "registration_step": "completed"
+  }
 }

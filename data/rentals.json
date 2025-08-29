@@ -1,3 +1,18 @@
 {
-
+  "6f10250b-f6fa-4dd1-92f2-0ed56aee7ed8": {
+    "id": "6f10250b-f6fa-4dd1-92f2-0ed56aee7ed8",
+    "user_id": "7766232942",
+    "console_id": "d9374271-5e58-4f8a-a3b8-fd4ffddb9649",
+    "start_time": "2025-08-29T21:35:48.211114",
+    "expected_end_time": null,
+    "selected_hours": null,
+    "expected_cost": 0,
+    "end_time": "2025-08-29T21:35:55.860473",
+    "status": "completed",
+    "total_cost": 500,
+    "location": {
+      "latitude": 47.755767,
+      "longitude": 27.893039
+    }
+  }
 }
