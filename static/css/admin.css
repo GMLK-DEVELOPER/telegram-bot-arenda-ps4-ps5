@@ -1,0 +1,189 @@
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+    background: linear-gradient(180deg, #1a1d23 0%, #212529 100%);
+    min-height: 100vh;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+.sidebar-brand {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar .nav-link {
+    color: #adb5bd;
+    padding: 10px 20px;
+    border-radius: 0;
+    transition: all .2s;
+    font-size: 0.9rem;
+}
+.sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,0.07); }
+.sidebar .nav-link.active { color: #fff; background: #0d6efd; }
+.sidebar .nav-link i { width: 18px; }
+
+/* Online/offline dot */
+.online-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+.online-dot.online  { background: #28a745; box-shadow: 0 0 5px #28a745; }
+.online-dot.offline { background: #dc3545; box-shadow: 0 0 5px #dc3545; }
+
+.sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* ── Content ─────────────────────────────────────────────────────────────── */
+.main-content { padding: 24px; }
+.page-title { font-weight: 700; color: #212529; margin-bottom: 1.5rem; }
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+}
+.card-header {
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 14px 14px 0 0 !important;
+    font-weight: 600;
+    padding: 14px 20px;
+}
+.stat-card {
+    border-radius: 14px;
+    padding: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.stat-card .stat-icon {
+    position: absolute; right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    opacity: 0.2;
+}
+.stat-card h3 { font-size: 2rem; font-weight: 700; margin: 0; }
+.stat-card span { font-size: 0.85rem; opacity: .85; }
+
+/* Revenue cards */
+.stat-card.revenue-today { background: linear-gradient(135deg, #667eea, #764ba2); }
+.stat-card.revenue-month { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.stat-card.stat-available { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.stat-card.stat-rented    { background: linear-gradient(135deg, #f6d365, #fda085); }
+.stat-card.stat-users     { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.stat-card.stat-pending   { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+/* ── Tables ─────────────────────────────────────────────────────────────── */
+.table-hover tbody tr:hover { background-color: rgba(13,110,253,.04); }
+.table thead th { font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: .04em; color: #6c757d; border-bottom: 2px solid #e9ecef; }
+.table td { vertical-align: middle; font-size: 0.9rem; }
+tr.row-active  { background-color: rgba(25, 135, 84, 0.06) !important; }
+tr.row-ended   { background-color: rgba(108, 117, 125, 0.04) !important; }
+tr.row-pending { background-color: rgba(255, 193, 7, 0.07) !important; }
+tr.row-banned  { background-color: rgba(220, 53, 69, 0.06) !important; }
+
+/* ── Console photo ───────────────────────────────────────────────────────── */
+.console-photo { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; }
+
+/* ── Search bar ─────────────────────────────────────────────────────────── */
+.search-bar { position: relative; }
+.search-bar input { padding-left: 36px; border-radius: 10px; }
+.search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd; }
+
+/* ── Countdown timer ─────────────────────────────────────────────────────── */
+.countdown { font-family: monospace; font-size: .95rem; font-weight: 600; }
+.countdown.expired { color: #dc3545; }
+
+/* ── Blink animation ─────────────────────────────────────────────────────── */
+@keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:.4} }
+.blink { animation: blink 1.2s infinite; }
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+#mainToast { min-width: 280px; }
+.toast.toast-success .toast-header { background: #d1e7dd; }
+.toast.toast-error   .toast-header { background: #f8d7da; }
+.toast.toast-info    .toast-header { background: #cfe2ff; }
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+.topbar {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.topbar .last-update { font-size: 0.8rem; color: #6c757d; }
+
+/* ── Chart wrapper ───────────────────────────────────────────────────────── */
+.chart-wrapper { position: relative; height: 220px; }
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+    .sidebar { display: none !important; }
+    .main-content { padding: 16px; }
+    .stat-card h3 { font-size: 1.5rem; }
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .table-responsive { font-size: 0.8rem; }
+}
+.mobile-navbar {
+    background: linear-gradient(90deg, #1a1d23, #2c3040);
+    padding: 10px 16px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+}
+@media (max-width: 767px) { .mobile-navbar { display: flex !important; } }
+.mobile-navbar .brand { color: #fff; font-weight: 700; font-size: 1rem; }
+.mobile-navbar .btn-burger { background: rgba(255,255,255,.1); border: none; color: #fff; border-radius: 8px; padding: 6px 10px; }
+
+/* Offcanvas sidebar */
+.offcanvas-sidebar { width: 240px !important; background: linear-gradient(180deg, #1a1d23 0%, #212529 100%) !important; }
+.offcanvas-sidebar .nav-link { color: #adb5bd; padding: 10px 20px; }
+.offcanvas-sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,.07); }
+.offcanvas-sidebar .nav-link.active { color: #fff; background: #0d6efd; }
+
+/* ── Kbd hints ───────────────────────────────────────────────────────────── */
+.kbd-hint { font-size: 0.7rem; color: #6c757d; margin-left: auto; background: rgba(255,255,255,0.08); border-radius: 4px; padding: 1px 5px; }
+
+/* ── Badge pulse animation ──────────────────────────────────────────────── */
+@keyframes badge-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+.badge-pulse { animation: badge-pulse 0.5s ease-in-out 6; }
+
+/* ── Visual Calendar ─────────────────────────────────────────────────────── */
+.cal-table { border-collapse: separate; border-spacing: 3px; }
+.cal-th { text-align: center; font-size: 0.78rem; color: #6c757d; padding: 4px 0; font-weight: 600; }
+.cal-td { width: 14.28%; text-align: center; border-radius: 8px; cursor: default; }
+.cal-day { cursor: pointer; transition: background 0.15s; }
+.cal-day:hover { background: #e9ecef; }
+.cal-day-num { display: inline-block; width: 32px; height: 32px; line-height: 32px; border-radius: 50%; font-size: 0.88rem; }
+.cal-today .cal-day-num { background: #0d6efd; color: #fff; font-weight: 700; }
+.cal-blocked { background: rgba(220,53,69,0.1); }
+.cal-blocked .cal-day-num { color: #dc3545; font-weight: 600; }
+.cal-blocked:hover { background: rgba(220,53,69,0.2); }
+.cal-rented { background: rgba(25,135,84,0.1); }
+.cal-rented .cal-day-num { color: #198754; font-weight: 600; }
+.cal-rented:hover { background: rgba(25,135,84,0.2); }
+.cal-today.cal-blocked .cal-day-num { background: #dc3545; color: #fff; }
+.cal-today.cal-rented .cal-day-num { background: #198754; color: #fff; }
+.cal-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }

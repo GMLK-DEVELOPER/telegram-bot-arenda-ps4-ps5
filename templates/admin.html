@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель — PS4 Аренда</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── Mobile Navbar ────────────────────────────────────────────────────────── -->
+<div class="mobile-navbar">
+    <button class="btn-burger" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+    <span class="brand"><i class="fas fa-gamepad me-2 text-primary"></i>PS4 Аренда</span>
+</div>
+
+<!-- ── Mobile Offcanvas Sidebar ─────────────────────────────────────────────── -->
+<div class="offcanvas offcanvas-start offcanvas-sidebar" id="mobileSidebar" tabindex="-1">
+    <div class="offcanvas-body p-0">
+        <div class="sidebar-brand text-center">
+            <i class="fas fa-gamepad fa-2x text-primary"></i>
+            <div class="mt-2 fw-bold text-white">PS4 Аренда</div>
+        </div>
+        <nav class="nav flex-column mt-2">
+            <a class="nav-link" data-section="dashboard"      href="#" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i>Дашборд<span class="kbd-hint">1</span></a>
+            <a class="nav-link" data-section="consoles"       href="#" onclick="showSection('consoles')"><i class="fas fa-gamepad me-2"></i>Консоли<span class="kbd-hint">2</span></a>
+            <a class="nav-link" data-section="rentals"        href="#" onclick="showSection('rentals')"><i class="fas fa-clock me-2"></i>Аренды<span class="kbd-hint">3</span></a>
+            <a class="nav-link" data-section="requests"       href="#" onclick="showSection('requests')"><i class="fas fa-bell me-2"></i>Заявки<span id="requests-badge-mobile" class="badge bg-danger ms-1" style="display:none">0</span><span class="kbd-hint">4</span></a>
+            <a class="nav-link" data-section="users"          href="#" onclick="showSection('users')"><i class="fas fa-users me-2"></i>Пользователи<span class="kbd-hint">5</span></a>
+            <a class="nav-link" data-section="discounts"      href="#" onclick="showSection('discounts')"><i class="fas fa-percent me-2"></i>Скидки<span class="kbd-hint">6</span></a>
+            <a class="nav-link" data-section="ratings"        href="#" onclick="showSection('ratings')"><i class="fas fa-star me-2"></i>Рейтинги<span class="kbd-hint">7</span></a>
+            <a class="nav-link" data-section="calendar"       href="#" onclick="showSection('calendar')"><i class="fas fa-calendar me-2"></i>Календарь<span class="kbd-hint">8</span></a>
+            <a class="nav-link" data-section="settings"       href="#" onclick="showSection('settings')"><i class="fas fa-cog me-2"></i>Настройки<span class="kbd-hint">9</span></a>
+            <a class="nav-link" data-section="telegram-admins" href="#" onclick="showSection('telegram-admins')"><i class="fas fa-user-shield me-2"></i>Telegram Админы</a>
+            <hr class="border-secondary mx-3">
+            <a class="nav-link text-danger" id="logout-link-mobile" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Выйти</a>
+        </nav>
+    </div>
+</div>
+
+<!-- ── Layout ────────────────────────────────────────────────────────────────── -->
+<div class="container-fluid g-0">
+<div class="row g-0">
+
+    <!-- ── Desktop Sidebar ──────────────────────────────────────────────────── -->
+    <div class="col-md-2 sidebar d-none d-md-flex flex-column">
+        <div class="sidebar-brand text-center">
+            <i class="fas fa-gamepad fa-2x text-primary"></i>
+            <div class="mt-2 fw-bold text-white fs-6">PS4 Аренда</div>
+        </div>
+        <nav class="nav flex-column mt-2 flex-grow-1">
+            <a class="nav-link active" data-section="dashboard"      href="#" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i>Дашборд<span class="kbd-hint">1</span></a>
+            <a class="nav-link"        data-section="consoles"       href="#" onclick="showSection('consoles')"><i class="fas fa-gamepad me-2"></i>Консоли<span class="kbd-hint">2</span></a>
+            <a class="nav-link"        data-section="rentals"        href="#" onclick="showSection('rentals')"><i class="fas fa-clock me-2"></i>Аренды<span class="kbd-hint">3</span></a>
+            <a class="nav-link"        data-section="requests"       href="#" onclick="showSection('requests')">
+                <i class="fas fa-bell me-2"></i>Заявки
+                <span id="requests-badge" class="badge bg-danger ms-1" style="display:none">0</span>
+                <span class="kbd-hint">4</span>
+            </a>
+            <a class="nav-link"        data-section="users"          href="#" onclick="showSection('users')"><i class="fas fa-users me-2"></i>Пользователи<span class="kbd-hint">5</span></a>
+            <a class="nav-link"        data-section="discounts"      href="#" onclick="showSection('discounts')"><i class="fas fa-percent me-2"></i>Скидки<span class="kbd-hint">6</span></a>
+            <a class="nav-link"        data-section="ratings"        href="#" onclick="showSection('ratings')"><i class="fas fa-star me-2"></i>Рейтинги<span class="kbd-hint">7</span></a>
+            <a class="nav-link"        data-section="calendar"       href="#" onclick="showSection('calendar')"><i class="fas fa-calendar me-2"></i>Календарь<span class="kbd-hint">8</span></a>
+            <a class="nav-link"        data-section="settings"       href="#" onclick="showSection('settings')"><i class="fas fa-cog me-2"></i>Настройки<span class="kbd-hint">9</span></a>
+            <a class="nav-link"        data-section="telegram-admins" href="#" onclick="showSection('telegram-admins')"><i class="fas fa-user-shield me-2"></i>Telegram Админы</a>
+            <hr class="border-secondary mx-3 mt-auto">
+            <a class="nav-link text-danger mb-1" id="logout-link" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Выйти</a>
+        </nav>
+        <div class="sidebar-footer d-flex align-items-center gap-2">
+            <span id="online-dot" class="online-dot online" title="Онлайн"></span>
+            <span>Обновлено: <span id="last-update-time">—</span></span>
+        </div>
+    </div>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <div class="col-md-10 col-12 main-content">
+
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div>
+                <span class="fw-bold text-dark" id="page-heading">Дашборд</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="last-update d-none d-md-inline">
+                    <i class="fas fa-circle online-dot online" style="font-size:8px"></i>
+                    Обновлено: <span id="last-update-top">—</span>
+                </span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadAll(); toast('Обновлено', 'info')" title="Обновить (R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- DASHBOARD -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-dashboard" class="section active">
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="stat-card stat-available">
+                        <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
+                        <h3 id="stat-available">—</h3>
+                        <span>Свободно</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="stat-card stat-rented">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <h3 id="stat-rented">—</h3>
+                        <span>Арендовано</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="stat-card stat-users">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <h3 id="stat-users">—</h3>
+                        <span>Пользователей</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="stat-card stat-pending">
+                        <div class="stat-icon"><i class="fas fa-bell"></i></div>
+                        <h3 id="stat-pending">—</h3>
+                        <span>Заявок</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="stat-card revenue-today">
+                        <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                        <h3 id="stat-revenue-today" style="font-size:1.3rem">—</h3>
+                        <span>Доход сегодня</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="stat-card revenue-month">
+                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3 id="stat-revenue-month" style="font-size:1.3rem">—</h3>
+                        <span>Доход за месяц</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-bar text-primary me-2"></i>Доход за последние 7 дней</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-wrapper">
+                                <canvas id="revenue-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-clock text-warning me-2"></i>Активные аренды</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>Консоль</th><th>Кто</th><th>Прошло</th><th>Осталось</th><th></th></tr></thead>
+                                    <tbody id="active-rentals-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-bell text-danger me-2"></i>Ожидающие заявки</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>Кто</th><th>Консоль</th><th>Стоимость</th><th></th></tr></thead>
+                                    <tbody id="pending-requests-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- CONSOLES -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-consoles" class="section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="page-title mb-0"><i class="fas fa-gamepad me-2"></i>Консоли</h4>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addConsoleModal">
+                    <i class="fas fa-plus me-1"></i>Добавить
+                </button>
+            </div>
+            <div class="row g-3" id="consoles-grid"></div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- RENTALS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-rentals" class="section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="page-title mb-0"><i class="fas fa-clock me-2"></i>Все аренды</h4>
+                <button class="btn btn-outline-success btn-sm" onclick="exportRentalsCSV()">
+                    <i class="fas fa-file-csv me-1"></i>Экспорт CSV
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="search-bar" style="max-width:320px">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-rentals" class="form-control form-control-sm" placeholder="Поиск по имени, консоли..." oninput="renderRentals()">
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>ID</th><th>Пользователь</th><th>Консоль</th><th>Начало</th><th>Конец</th><th>Стоимость</th><th>Статус</th><th>Действие</th></tr></thead>
+                            <tbody id="rentals-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- REQUESTS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-requests" class="section">
+            <h4 class="page-title"><i class="fas fa-bell me-2"></i>Заявки на аренду</h4>
+            <div class="card">
+                <div class="card-header">
+                    <div class="search-bar" style="max-width:320px">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-requests" class="form-control form-control-sm" placeholder="Поиск по имени, телефону..." oninput="renderRequests()">
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Пользователь</th><th>Телефон</th><th>Консоль</th><th>Стоимость</th><th>Время</th><th>Статус</th><th>Действие</th></tr></thead>
+                            <tbody id="requests-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- USERS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-users" class="section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="page-title mb-0"><i class="fas fa-users me-2"></i>Пользователи</h4>
+                <button class="btn btn-outline-success btn-sm" onclick="exportUsersCSV()">
+                    <i class="fas fa-file-csv me-1"></i>Экспорт CSV
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="search-bar" style="max-width:320px">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-users" class="form-control form-control-sm" placeholder="Поиск по имени, телефону, ID..." oninput="renderUsers()">
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>ID</th><th>Имя</th><th>Телефон</th><th>Аренд</th><th>Потрачено</th><th>Дата</th><th>Статус</th><th>Действие</th></tr></thead>
+                            <tbody id="users-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- DISCOUNTS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-discounts" class="section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="page-title mb-0"><i class="fas fa-percent me-2"></i>Скидки</h4>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDiscountModal">
+                    <i class="fas fa-plus me-1"></i>Добавить скидку
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead><tr><th>Консоль</th><th>Тип</th><th>Значение</th><th>Начало</th><th>Конец</th><th>Статус</th><th>Действие</th></tr></thead>
+                        <tbody id="discounts-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- RATINGS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-ratings" class="section">
+            <h4 class="page-title"><i class="fas fa-star me-2"></i>Рейтинги пользователей</h4>
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead><tr><th>Пользователь</th><th>Рейтинг</th><th>Дисциплина</th><th>Лояльность</th><th>Статус</th><th>Действие</th></tr></thead>
+                        <tbody id="ratings-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- CALENDAR -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-calendar" class="section">
+            <h4 class="page-title"><i class="fas fa-calendar me-2"></i>Календарь аренд</h4>
+            <div class="row g-3">
+                <!-- Visual Calendar -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="calPrevMonth()"><i class="fas fa-chevron-left"></i></button>
+                            <span id="cal-month-title" class="fw-bold fs-5"></span>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="calNextMonth()"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="card-body p-2">
+                            <div id="cal-grid"></div>
+                        </div>
+                    </div>
+                    <!-- Legend -->
+                    <div class="d-flex gap-3 mt-2 flex-wrap px-1" style="font-size:0.82rem">
+                        <span><span class="cal-dot" style="background:#0d6efd"></span> Сегодня</span>
+                        <span><span class="cal-dot" style="background:#198754"></span> Аренда активна</span>
+                        <span><span class="cal-dot" style="background:#dc3545"></span> Заблокировано</span>
+                    </div>
+                </div>
+                <!-- Right panel -->
+                <div class="col-lg-4">
+                    <div class="card mb-3">
+                        <div class="card-header"><i class="fas fa-ban text-danger me-2"></i>Заблокировать дату</div>
+                        <div class="card-body">
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" id="block-date-input">
+                                <button class="btn btn-danger" onclick="addBlockedDate()"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <ul class="list-group list-group-flush" id="blocked-dates-list" style="max-height:200px;overflow-y:auto"></ul>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-info-circle text-info me-2"></i>Статус</div>
+                        <div class="card-body" id="calendar-info"><p class="text-muted">Загрузка...</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- SETTINGS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-settings" class="section">
+            <h4 class="page-title"><i class="fas fa-cog me-2"></i>Настройки системы</h4>
+            <div class="card">
+                <div class="card-body">
+                    <form id="settings-form">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Макс. часов аренды</label>
+                                <input type="number" class="form-control" id="s-max-hours" min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Напоминание за (ч.)</label>
+                                <input type="number" class="form-control" id="s-reminder" min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Частота проверки (мин.)</label>
+                                <input type="number" class="form-control" id="s-freq" min="1" max="60">
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="s-require-approval">
+                                    <label class="form-check-label" for="s-require-approval">Требовать подтверждение</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="s-notif">
+                                    <label class="form-check-label" for="s-notif">Уведомления</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="s-push">
+                                    <label class="form-check-label" for="s-push">Push-уведомления</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="s-critical">
+                                    <label class="form-check-label" for="s-critical">Критические</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="s-photos">
+                                    <label class="form-check-label" for="s-photos">Фото в боте</label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Shop Location -->
+                        <hr class="my-4">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-map-marker-alt text-danger me-2"></i>Местоположение магазина</h6>
+                        <p class="text-muted small mb-3">Отправляется клиенту в Telegram при одобрении заявки.</p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Название</label>
+                                <input type="text" class="form-control" id="s-shop-title" placeholder="PS4 Прокат">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Адрес</label>
+                                <input type="text" class="form-control" id="s-shop-address" placeholder="ул. Пушкина, д. 1">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Широта (Latitude)</label>
+                                <input type="number" class="form-control" id="s-shop-lat" step="0.000001" placeholder="47.024512">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Долгота (Longitude)</label>
+                                <input type="number" class="form-control" id="s-shop-lng" step="0.000001" placeholder="28.832157">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openGoogleMaps()">
+                                <i class="fas fa-map me-1"></i>Найти координаты на Google Maps
+                            </button>
+                            <span id="location-status" class="ms-2 small text-muted"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-2">
+                            <i class="fas fa-save me-1"></i>Сохранить настройки
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- TELEGRAM ADMINS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-telegram-admins" class="section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="page-title mb-0"><i class="fas fa-user-shield me-2"></i>Telegram Админы</h4>
+                <button class="btn btn-primary" onclick="showAddTelegramAdminModal()">
+                    <i class="fas fa-plus me-1"></i>Добавить
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Telegram ID</th><th>Username</th><th>Имя</th><th>Добавлен</th><th>Кем</th><th>Действие</th></tr></thead>
+                            <tbody id="telegram-admins-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main-content -->
+</div><!-- /row -->
+</div><!-- /container-fluid -->
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- MODALS -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Add Console -->
+<div class="modal fade" id="addConsoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Добавить консоль</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-console-form">
+                    <div class="mb-3"><label class="form-label fw-semibold">Название</label><input type="text" class="form-control" name="name" required></div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Модель</label><input type="text" class="form-control" name="model" placeholder="PS4, PS5..."></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col"><label class="form-label fw-semibold">Цена аренды (лей/ч)</label><input type="number" class="form-control" name="rental_price" min="0" required></div>
+                        <div class="col"><label class="form-label fw-semibold">Цена продажи (лей)</label><input type="number" class="form-control" name="sale_price" min="0" value="0"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Игры (через запятую)</label><input type="text" class="form-control" name="games_str" placeholder="FIFA 24, GTA 5..."></div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Фото</label><input type="file" class="form-control" name="photo" accept="image/*"></div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="show_photo_in_bot" checked id="show-photo-check">
+                        <label class="form-check-label" for="show-photo-check">Показывать фото в боте</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddConsole()"><i class="fas fa-save me-1"></i>Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Console -->
+<div class="modal fade" id="editConsoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редактировать консоль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-console-form">
+                    <input type="hidden" name="console_id" id="edit-console-id">
+                    <div class="mb-3"><label class="form-label fw-semibold">Название</label><input type="text" class="form-control" name="name" id="edit-name"></div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Модель</label><input type="text" class="form-control" name="model" id="edit-model"></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col"><label class="form-label fw-semibold">Цена аренды</label><input type="number" class="form-control" name="rental_price" id="edit-rental-price"></div>
+                        <div class="col"><label class="form-label fw-semibold">Цена продажи</label><input type="number" class="form-control" name="sale_price" id="edit-sale-price"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Игры</label><input type="text" class="form-control" name="games_str" id="edit-games"></div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Новое фото</label><input type="file" class="form-control" name="photo" accept="image/*"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-warning" onclick="submitEditConsole()"><i class="fas fa-save me-1"></i>Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Discount -->
+<div class="modal fade" id="addDiscountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-percent me-2"></i>Добавить скидку</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-discount-form">
+                    <div class="mb-3"><label class="form-label fw-semibold">Консоль</label><select class="form-select" name="console_id" id="discount-console-select"></select></div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Тип скидки</label>
+                        <select class="form-select" name="type">
+                            <option value="percentage">Процент (%)</option>
+                            <option value="fixed">Фиксированная (лей)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Значение</label><input type="number" class="form-control" name="value" min="0"></div>
+                    <div class="row g-2">
+                        <div class="col"><label class="form-label fw-semibold">Начало</label><input type="datetime-local" class="form-control" name="start_date"></div>
+                        <div class="col"><label class="form-label fw-semibold">Конец</label><input type="datetime-local" class="form-control" name="end_date"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="submitAddDiscount()"><i class="fas fa-save me-1"></i>Создать</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Telegram Admin -->
+<div class="modal fade" id="addTelegramAdminModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-user-shield me-2"></i>Добавить Telegram Admin</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-telegram-admin-form">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Telegram ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="telegram_id" required placeholder="123456789">
+                        <small class="text-muted">Узнать ID можно через @userinfobot</small>
+                    </div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Username</label><input type="text" class="form-control" name="username" placeholder="@username"></div>
+                    <div class="mb-3"><label class="form-label fw-semibold">Полное имя</label><input type="text" class="form-control" name="full_name" placeholder="Иван Иванов"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddTelegramAdmin()"><i class="fas fa-plus me-1"></i>Добавить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="mainToast" class="toast" role="alert">
+        <div class="toast-header">
+            <strong class="me-auto" id="toast-title">Уведомление</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toast-body"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- SCRIPTS -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/admin-core.js"></script>
+<script src="/static/js/admin-dashboard.js"></script>
+<script src="/static/js/admin-consoles.js"></script>
+<script src="/static/js/admin-rentals.js"></script>
+<script src="/static/js/admin-requests.js"></script>
+<script src="/static/js/admin-users.js"></script>
+<script src="/static/js/admin-discounts.js"></script>
+<script src="/static/js/admin-ratings.js"></script>
+<script src="/static/js/admin-calendar.js"></script>
+<script src="/static/js/admin-settings.js"></script>
+<script src="/static/js/admin-telegram.js"></script>
+<script src="/static/js/admin-init.js"></script>
+</body>
+</html>

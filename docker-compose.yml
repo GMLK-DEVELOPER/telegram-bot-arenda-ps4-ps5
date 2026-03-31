@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ps4_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ps4user
+      POSTGRES_PASSWORD: ps4password
+      POSTGRES_DB: ps4rental
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ps4user -d ps4rental"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: ps4_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://ps4user:ps4password@postgres:5432/ps4rental?sslmode=disable
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      ADMIN_TELEGRAM_ID: ${ADMIN_TELEGRAM_ID:-}
+      WEB_PORT: 8080
+      SECRET_KEY: ${SECRET_KEY:-changeme_please_set_this}
+      PASSPORT_DIR: /app/passport
+      DATA_DIR: /app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./static/img:/app/static/img
+      - ./passport:/app/passport
+
+volumes:
+  postgres_data:
