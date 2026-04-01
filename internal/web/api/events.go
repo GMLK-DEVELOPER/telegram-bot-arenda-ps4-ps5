@@ -83,5 +83,8 @@ func SSEStream(c *gin.Context) {
 
 // SSEHealth is a simple check that SSE is working
 func SSEHealth(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"clients": len(hub.clients)})
+	hub.mu.Lock()
+	n := len(hub.clients)
+	hub.mu.Unlock()
+	c.JSON(http.StatusOK, gin.H{"clients": n})
 }

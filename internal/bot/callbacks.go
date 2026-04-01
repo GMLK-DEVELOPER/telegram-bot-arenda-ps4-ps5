@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -295,7 +296,10 @@ func handleCalendarNavigation(call *tgbotapi.CallbackQuery) {
 
 // ─── Date selection ──────────────────────────────────────────────────────────
 
-var userDateStates = make(map[string]map[string]string) // userID -> {console_id, selected_date}
+var userDateStates = struct {
+	sync.RWMutex
+	m map[string]map[string]string
+}{m: make(map[string]map[string]string)}
 
 func handleDateSelection(call *tgbotapi.CallbackQuery) {
 	// dt_<shortID>_<YYYY-MM-DD>
@@ -321,7 +325,9 @@ func handleDateSelection(call *tgbotapi.CallbackQuery) {
 	}
 
 	userID := fmt.Sprintf("%d", call.From.ID)
-	userDateStates[userID] = map[string]string{"console_id": consoleID, "selected_date": selectedDate}
+	userDateStates.Lock()
+	userDateStates.m[userID] = map[string]string{"console_id": consoleID, "selected_date": selectedDate}
+	userDateStates.Unlock()
 
 	console := consoles[consoleID]
 	pricePerHour := console.RentalPrice
@@ -690,7 +696,9 @@ func handleConfirmRent(call *tgbotapi.CallbackQuery) {
 			UserID:        userID,
 			ConsoleID:     consoleID,
 			SelectedHours: selectedHours,
+			DurationHours: selectedHours,
 			ExpectedCost:  float64(selectedHours) * c.RentalPrice,
+			TotalCost:     float64(selectedHours) * c.RentalPrice,
 			RequestTime:   time.Now().Format(time.RFC3339),
 			Status:        "pending",
 		})
@@ -979,7 +987,7 @@ func handleAdminRequests(call *tgbotapi.CallbackQuery, userID string) {
 	requests := storage.LoadRequests()
 	var pending []models.RentalRequest
 	for _, r := range requests {
-		if r.Status == "pending" {
+		if r.Status == "pending" || r.Status == "pending_approval" {
 			pending = append(pending, r)
 		}
 	}
@@ -1460,7 +1468,7 @@ func handleNotifications(msg *tgbotapi.Message) {
 	requests := storage.LoadRequests()
 	var pending []models.RentalRequest
 	for _, r := range requests {
-		if r.Status == "pending" {
+		if r.Status == "pending" || r.Status == "pending_approval" {
 			pending = append(pending, r)
 		}
 	}

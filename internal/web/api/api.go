@@ -903,10 +903,6 @@ func calcUserRating(userID string) *models.UserRatingResult {
 	}
 }
 
-func min(a, b int) int {
-	if a < b { return a }
-	return b
-}
 
 // ─── Telegram Admins ──────────────────────────────────────────────────────────
 

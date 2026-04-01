@@ -117,6 +117,11 @@ func processCallback(call *tgbotapi.CallbackQuery) {
 	handleCallback(call)
 }
 
+// GetBotAPI returns the bot instance (may be nil if not yet initialized).
+func GetBotAPI() *tgbotapi.BotAPI {
+	return botInstance
+}
+
 // SendToUser sends a Telegram message to a user by their string user ID.
 func SendToUser(userID string, text string) {
 	if botInstance == nil {

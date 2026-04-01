@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"ps4-rental/internal/bot"
 	"ps4-rental/internal/config"
 	"ps4-rental/internal/db"
@@ -60,16 +60,21 @@ func main() {
 	if cfg.TelegramBotToken == "" || cfg.TelegramBotToken == "ВАШ_ТОКЕН_ЗДЕСЬ" {
 		fmt.Println("⚠️  Токен Telegram не задан — бот не запущен. Только веб-панель.")
 	} else {
-		botAPI, err := tgbotapi.NewBotAPI(cfg.TelegramBotToken)
-		if err != nil {
-			fmt.Printf("⚠️  Ошибка инициализации бота: %v\n", err)
-			fmt.Println("⚠️  Telegram бот не запущен. Только веб-панель.")
-		} else {
-			scheduler.Start(botAPI)
-			go func() {
-				bot.Start()
-			}()
-		}
+		// bot.Start() creates the BotAPI and polls. Get instance back for scheduler.
+		go func() {
+			bot.Start()
+		}()
+		// Wait a moment for bot to initialize, then pass its instance to scheduler
+		go func() {
+			for i := 0; i < 50; i++ {
+				if botAPI := bot.GetBotAPI(); botAPI != nil {
+					scheduler.Start(botAPI)
+					return
+				}
+				time.Sleep(100 * time.Millisecond)
+			}
+			fmt.Println("⚠️  Планировщик: бот не инициализирован за 5 секунд")
+		}()
 	}
 
 	fmt.Println("✅ Система запущена. Нажмите Ctrl+C для остановки.")
