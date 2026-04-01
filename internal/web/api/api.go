@@ -18,6 +18,7 @@ import (
 	"ps4-rental/internal/config"
 	"ps4-rental/internal/models"
 	"ps4-rental/internal/storage"
+	"ps4-rental/internal/web/middleware"
 )
 
 // ─── Consoles ─────────────────────────────────────────────────────────────────
@@ -59,6 +60,9 @@ func CreateConsole(c *gin.Context) {
 	}
 	consoles[id] = console
 	_ = storage.SaveConsoles(consoles)
+
+	middleware.LogAction(c, "created_console", id, console.Name)
+
 	c.JSON(http.StatusOK, gin.H{"status": "success", "console": console})
 }
 
@@ -103,6 +107,9 @@ func UpdateConsole(c *gin.Context) {
 
 	consoles[consoleID] = console
 	_ = storage.SaveConsoles(consoles)
+
+	middleware.LogAction(c, "updated_console", consoleID, console.Name)
+
 	c.JSON(http.StatusOK, gin.H{"status": "success", "console": console})
 }
 
@@ -119,12 +126,16 @@ func DeleteConsole(c *gin.Context) {
 	}
 
 	consoles := storage.LoadConsoles()
-	if _, ok := consoles[consoleID]; !ok {
+	console, ok := consoles[consoleID]
+	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Консоль не найдена"})
 		return
 	}
 	delete(consoles, consoleID)
 	_ = storage.SaveConsoles(consoles)
+
+	middleware.LogAction(c, "deleted_console", consoleID, console.Name)
+
 	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
@@ -290,6 +301,13 @@ func EndRental(c *gin.Context) {
 	_ = storage.SaveConsoles(consoles)
 	_ = storage.SaveUsers(users)
 
+	middleware.LogActionJSON(c, "ended_rental", rentalID, gin.H{
+		"user_id":    rental.UserID,
+		"console_id": rental.ConsoleID,
+		"hours":      hours,
+		"cost":       totalCost,
+	})
+
 	c.JSON(http.StatusOK, gin.H{"status": "success", "total_cost": totalCost, "hours": hours})
 }
 
@@ -319,6 +337,8 @@ func StartRental(c *gin.Context) {
 
 	// Send location request to user
 	bot.SendLocationRequest(rental.UserID)
+
+	middleware.LogAction(c, "started_rental", rentalID, fmt.Sprintf("user_id=%s", rental.UserID))
 
 	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
@@ -373,6 +393,12 @@ func ExtendRental(c *gin.Context) {
 	msg := fmt.Sprintf("⏰ *Аренда продлена!*\n\n🎮 Консоль: *%s*\n➕ Добавлено: *%d ч.*\n📅 Новое время окончания: *%s*\n💰 Доп. стоимость: *%.0f лей*",
 		console.Name, hours, newEnd.Format("02.01.2006 15:04"), extraCost)
 	bot.SendToUser(rental.UserID, msg)
+
+	middleware.LogActionJSON(c, "extended_rental", rentalID, gin.H{
+		"user_id":    rental.UserID,
+		"hours":      hours,
+		"extra_cost": extraCost,
+	})
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "new_end": newEnd.Format("02.01.2006 15:04"), "extra_cost": extraCost})
 }
@@ -453,6 +479,13 @@ func ApproveRentalRequest(c *gin.Context) {
 		bot.SendLocationToUser(req.UserID, settings.ShopLatitude, settings.ShopLongitude, title, address)
 	}
 
+	middleware.LogActionJSON(c, "approved_rental", requestID, gin.H{
+		"user_id":    req.UserID,
+		"console_id": req.ConsoleID,
+		"rental_id":  rentalID,
+		"cost":       req.TotalCost,
+	})
+
 	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
@@ -470,6 +503,8 @@ func RejectRentalRequest(c *gin.Context) {
 	req.Status = "rejected"
 	requests[requestID] = req
 	_ = storage.SaveRequests(requests)
+
+	middleware.LogAction(c, "rejected_rental", requestID, fmt.Sprintf("user_id=%s", req.UserID))
 
 	// Notify user via Telegram
 	consoles := storage.LoadConsoles()

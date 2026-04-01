@@ -21,7 +21,7 @@ async function api(method, url, body) {
 }
 
 // ── Navigation ───────────────────────────────────────────────────────────────
-const SECTIONS = ['dashboard','consoles','rentals','requests','users','discounts','ratings','calendar','settings','telegram-admins'];
+const SECTIONS = ['dashboard','consoles','rentals','requests','users','discounts','ratings','calendar','settings','telegram-admins','reports','audit'];
 
 function showSection(name) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -45,6 +45,8 @@ function showSection(name) {
         case 'calendar':       loadCalendar();        break;
         case 'settings':       loadSettings();        break;
         case 'telegram-admins':loadTelegramAdmins();  break;
+        case 'reports':        loadTopClients();      break;
+        case 'audit':          loadAuditLogs();       break;
     }
 }
 

@@ -13,6 +13,7 @@ import (
 	"ps4-rental/internal/config"
 	"ps4-rental/internal/storage"
 	"ps4-rental/internal/web/api"
+	"ps4-rental/internal/web/middleware"
 )
 
 // Start initializes and starts the Gin web server
@@ -58,38 +59,38 @@ func Start() {
 
 		// Consoles API
 		auth.GET("/api/consoles", api.GetConsoles)
-		auth.POST("/api/consoles", api.CreateConsole)
-		auth.PUT("/api/consoles", api.UpdateConsole)
-		auth.DELETE("/api/consoles", api.DeleteConsole)
-		auth.POST("/api/consoles/photo", api.UploadConsolePhoto)
+		auth.POST("/api/consoles", middleware.RequireRole("admin", "operator"), api.CreateConsole)
+		auth.PUT("/api/consoles", middleware.RequireRole("admin", "operator"), api.UpdateConsole)
+		auth.DELETE("/api/consoles", middleware.RequireRole("admin"), api.DeleteConsole)
+		auth.POST("/api/consoles/photo", middleware.RequireRole("admin", "operator"), api.UploadConsolePhoto)
 
 		// Users API
 		auth.GET("/api/users", api.GetUsers)
-		auth.PUT("/api/users", api.UpdateUser)
-		auth.POST("/api/users/ban", api.BanUser)
-		auth.POST("/api/users/unban", api.UnbanUser)
-		auth.POST("/api/users/request-location", api.RequestUserLocation)
+		auth.PUT("/api/users", middleware.RequireRole("admin", "operator"), api.UpdateUser)
+		auth.POST("/api/users/ban", middleware.RequireRole("admin"), api.BanUser)
+		auth.POST("/api/users/unban", middleware.RequireRole("admin"), api.UnbanUser)
+		auth.POST("/api/users/request-location", middleware.RequireRole("admin", "operator"), api.RequestUserLocation)
 
 		// Rentals API
 		auth.GET("/api/rentals", api.GetRentals)
-		auth.POST("/api/rentals/end", api.EndRental)
-		auth.POST("/api/rentals/extend", api.ExtendRental)
-		auth.POST("/api/rentals/start", api.StartRental)
+		auth.POST("/api/rentals/end", middleware.RequireRole("admin", "operator"), api.EndRental)
+		auth.POST("/api/rentals/extend", middleware.RequireRole("admin", "operator"), api.ExtendRental)
+		auth.POST("/api/rentals/start", middleware.RequireRole("admin", "operator"), api.StartRental)
 
 		// Rental requests API
 		auth.GET("/api/rental-requests", api.GetRentalRequests)
-		auth.POST("/api/rental-requests/approve", api.ApproveRentalRequest)
-		auth.POST("/api/rental-requests/reject", api.RejectRentalRequest)
+		auth.POST("/api/rental-requests/approve", middleware.RequireRole("admin", "operator"), api.ApproveRentalRequest)
+		auth.POST("/api/rental-requests/reject", middleware.RequireRole("admin", "operator"), api.RejectRentalRequest)
 
 		// Discounts API
 		auth.GET("/api/discounts", api.GetDiscounts)
-		auth.POST("/api/discounts", api.CreateDiscount)
-		auth.PUT("/api/discounts", api.UpdateDiscount)
-		auth.DELETE("/api/discounts", api.DeleteDiscount)
+		auth.POST("/api/discounts", middleware.RequireRole("admin"), api.CreateDiscount)
+		auth.PUT("/api/discounts", middleware.RequireRole("admin"), api.UpdateDiscount)
+		auth.DELETE("/api/discounts", middleware.RequireRole("admin"), api.DeleteDiscount)
 
 		// Settings API
 		auth.GET("/api/settings", api.GetSettings)
-		auth.POST("/api/settings", api.UpdateSettings)
+		auth.POST("/api/settings", middleware.RequireRole("admin"), api.UpdateSettings)
 
 		// Ratings API
 		auth.GET("/api/ratings", api.GetRatings)
@@ -115,15 +116,38 @@ func Start() {
 
 		// Telegram Admins API
 		auth.GET("/api/telegram-admins", api.GetTelegramAdmins)
-		auth.POST("/api/telegram-admins", api.AddTelegramAdmin)
-		auth.DELETE("/api/telegram-admins", api.RemoveTelegramAdmin)
+		auth.POST("/api/telegram-admins", middleware.RequireRole("admin"), api.AddTelegramAdmin)
+		auth.DELETE("/api/telegram-admins", middleware.RequireRole("admin"), api.RemoveTelegramAdmin)
 
 		// Backup & Restore
-		auth.GET("/api/backup", api.DownloadBackup)
-		auth.POST("/api/restore", api.RestoreBackup)
+		auth.GET("/api/backup", middleware.RequireRole("admin"), api.DownloadBackup)
+		auth.POST("/api/restore", middleware.RequireRole("admin"), api.RestoreBackup)
 
 		// SSE real-time events
 		auth.GET("/api/events", api.SSEStream)
+
+		// Audit logs
+		auth.GET("/api/audit-logs", middleware.RequireRole("admin"), api.GetAuditLogs)
+
+		// User notes
+		auth.GET("/api/user-notes", api.GetUserNotes)
+		auth.POST("/api/user-notes", middleware.RequireRole("admin", "operator"), api.AddUserNote)
+		auth.DELETE("/api/user-notes", middleware.RequireRole("admin", "operator"), api.DeleteUserNote)
+
+		// Top clients
+		auth.GET("/api/top-clients", api.GetTopClients)
+
+		// Chart data
+		auth.GET("/api/chart-data", api.GetChartData)
+
+		// Broadcast
+		auth.POST("/api/broadcast", middleware.RequireRole("admin"), api.BroadcastMessage)
+
+		// Reports
+		auth.GET("/api/report", api.GetReport)
+
+		// Notifications
+		auth.GET("/api/notifications", api.GetNotifications)
 	}
 
 	addr := "0.0.0.0:" + config.App.WebPort
@@ -181,7 +205,16 @@ func authMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.Set("username", user)
+		username := user.(string)
+		c.Set("username", username)
+
+		// Load admin role and set in context
+		role := storage.GetAdminRole(username)
+		if role == "" {
+			role = "admin" // fallback
+		}
+		c.Set("admin_role", role)
+
 		c.Next()
 	}
 }

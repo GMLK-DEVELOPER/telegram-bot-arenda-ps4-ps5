@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/static/css/admin.css" rel="stylesheet">
+    <script src="/static/js/theme.js"></script>
 </head>
 <body>
 
@@ -37,6 +38,8 @@
             <a class="nav-link" data-section="calendar"       href="#" onclick="showSection('calendar')"><i class="fas fa-calendar me-2"></i>Календарь<span class="kbd-hint">8</span></a>
             <a class="nav-link" data-section="settings"       href="#" onclick="showSection('settings')"><i class="fas fa-cog me-2"></i>Настройки<span class="kbd-hint">9</span></a>
             <a class="nav-link" data-section="telegram-admins" href="#" onclick="showSection('telegram-admins')"><i class="fas fa-user-shield me-2"></i>Telegram Админы</a>
+            <a class="nav-link" data-section="reports" href="#" onclick="showSection('reports')"><i class="fas fa-file-alt me-2"></i>Отчёты</a>
+            <a class="nav-link" data-section="audit" href="#" onclick="showSection('audit')"><i class="fas fa-history me-2"></i>Логи действий</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link text-danger" id="logout-link-mobile" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Выйти</a>
         </nav>
@@ -68,10 +71,15 @@
             <a class="nav-link"        data-section="calendar"       href="#" onclick="showSection('calendar')"><i class="fas fa-calendar me-2"></i>Календарь<span class="kbd-hint">8</span></a>
             <a class="nav-link"        data-section="settings"       href="#" onclick="showSection('settings')"><i class="fas fa-cog me-2"></i>Настройки<span class="kbd-hint">9</span></a>
             <a class="nav-link"        data-section="telegram-admins" href="#" onclick="showSection('telegram-admins')"><i class="fas fa-user-shield me-2"></i>Telegram Админы</a>
+            <a class="nav-link"        data-section="reports" href="#" onclick="showSection('reports')"><i class="fas fa-file-alt me-2"></i>Отчёты</a>
+            <a class="nav-link"        data-section="audit" href="#" onclick="showSection('audit')"><i class="fas fa-history me-2"></i>Логи действий</a>
             <hr class="border-secondary mx-3 mt-auto">
             <a class="nav-link text-danger mb-1" id="logout-link" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Выйти</a>
         </nav>
         <div class="sidebar-footer d-flex align-items-center gap-2">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
             <span id="online-dot" class="online-dot online" title="Онлайн"></span>
             <span>Обновлено: <span id="last-update-time">—</span></span>
         </div>
@@ -83,7 +91,7 @@
         <!-- Top Bar -->
         <div class="topbar">
             <div>
-                <span class="fw-bold text-dark" id="page-heading">Дашборд</span>
+                <span class="fw-bold" id="page-heading" style="color:var(--text-primary)">Дашборд</span>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <span class="last-update d-none d-md-inline">
@@ -497,6 +505,99 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- REPORTS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-reports" class="section">
+            <h4 class="page-title mb-4"><i class="fas fa-file-alt me-2"></i>Отчёты</h4>
+
+            <div class="card mb-4">
+                <div class="card-header">Отчёт за период</div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Дата начала</label>
+                            <input type="date" class="form-control" id="report-start-date">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Дата окончания</label>
+                            <input type="date" class="form-control" id="report-end-date">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="generateReport()">
+                                <i class="fas fa-chart-bar me-1"></i>Сформировать
+                            </button>
+                        </div>
+                    </div>
+                    <div id="report-result"></div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Топ клиентов</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>Клиент</th><th>Потрачено</th></tr></thead>
+                                    <tbody id="top-clients-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Массовая рассылка</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Кому отправить</label>
+                                <select class="form-select" id="broadcast-filter">
+                                    <option value="all">Всем пользователям</option>
+                                    <option value="active">Только активным</option>
+                                    <option value="banned">Только заблокированным</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Сообщение</label>
+                                <textarea class="form-control" id="broadcast-message" rows="4" placeholder="Текст сообщения..."></textarea>
+                            </div>
+                            <button class="btn btn-warning w-100" onclick="sendBroadcast()">
+                                <i class="fas fa-paper-plane me-1"></i>Отправить всем
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- AUDIT LOGS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div id="section-audit" class="section">
+            <h4 class="page-title mb-4"><i class="fas fa-history me-2"></i>Логи действий</h4>
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Время</th>
+                                    <th>Админ</th>
+                                    <th>Действие</th>
+                                    <th>Цель</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-logs-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /main-content -->
 </div><!-- /row -->
 </div><!-- /container-fluid -->
@@ -641,7 +742,7 @@
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=2"></script>
-<script src="/static/js/admin-core.js?v=2"></script>
+<script src="/static/js/admin-core.js?v=3"></script>
 <script src="/static/js/admin-dashboard.js?v=2"></script>
 <script src="/static/js/admin-consoles.js?v=2"></script>
 <script src="/static/js/admin-rentals.js?v=2"></script>
@@ -652,6 +753,7 @@
 <script src="/static/js/admin-calendar.js?v=2"></script>
 <script src="/static/js/admin-settings.js?v=2"></script>
 <script src="/static/js/admin-telegram.js?v=2"></script>
+<script src="/static/js/admin-reports.js?v=2"></script>
 <script src="/static/js/admin-init.js?v=2"></script>
 
 <!-- Map Modal -->

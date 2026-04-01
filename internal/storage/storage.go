@@ -353,6 +353,15 @@ func AdminExists(username, password string) bool {
 	return row.Password == password
 }
 
+// GetAdminRole returns the role of the admin by username
+func GetAdminRole(username string) string {
+	var row db.Admin
+	if err := db.DB.Where("username = ?", username).First(&row).Error; err != nil {
+		return ""
+	}
+	return row.Role
+}
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 func LoadSettings() models.AdminSettings {

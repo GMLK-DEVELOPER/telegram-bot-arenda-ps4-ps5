@@ -59,7 +59,7 @@ type Admin struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement"`
 	Username  string    `gorm:"uniqueIndex;not null;size:255"`
 	Password  string    `gorm:"not null;size:255"`
-	Role      string    `gorm:"size:50;default:'admin'"`
+	Role      string    `gorm:"size:50;default:'admin'"` // admin, operator, viewer
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 }
 
@@ -223,3 +223,28 @@ type Waitlist struct {
 }
 
 func (Waitlist) TableName() string { return "waitlist" }
+
+// AuditLog — logs all admin actions for security and tracking
+type AuditLog struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	AdminUser string    `gorm:"index;size:255;not null"`
+	Action    string    `gorm:"size:100;not null"` // created_console, updated_user, approved_rental, etc.
+	Target    string    `gorm:"size:255"`          // ID of affected resource
+	Details   string    `gorm:"type:text"`         // JSON with additional context
+	IPAddress string    `gorm:"size:50"`
+	CreatedAt time.Time `gorm:"autoCreateTime;index"`
+}
+
+func (AuditLog) TableName() string { return "audit_logs" }
+
+// UserNote — admin notes about users
+type UserNote struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	UserID    string    `gorm:"index;size:255;not null"`
+	AdminUser string    `gorm:"size:255;not null"`
+	Note      string    `gorm:"type:text;not null"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+}
+
+func (UserNote) TableName() string { return "user_notes" }
