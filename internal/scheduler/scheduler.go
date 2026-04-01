@@ -34,7 +34,7 @@ func run() {
 	}
 }
 
-// checkExpiredRentals auto-completes rentals that exceeded max hours
+// checkExpiredRentals auto-completes rentals whose ExpectedEndTime has passed
 func checkExpiredRentals() {
 	s := storage.LoadSettings()
 	maxHours := s.MaxRentalHours
@@ -51,19 +51,27 @@ func checkExpiredRentals() {
 
 	for rentalID, rental := range rentals {
 		if rental.Status != "active" {
-			continue
+			continue // skip booked, completed, etc.
 		}
 
-		startTime, err := time.Parse(time.RFC3339, rental.StartTime)
-		if err != nil {
+		startTime, _ := time.Parse(time.RFC3339, rental.StartTime)
+		if startTime.IsZero() {
 			startTime, _ = time.Parse("2006-01-02T15:04:05", rental.StartTime)
 		}
 		if startTime.IsZero() {
 			continue
 		}
 
-		hours := now.Sub(startTime).Hours()
-		if hours < float64(maxHours) {
+		// Determine deadline: use ExpectedEndTime if set, else maxHours from start
+		var deadline time.Time
+		if rental.ExpectedEndTime != "" {
+			deadline, _ = time.Parse(time.RFC3339, rental.ExpectedEndTime)
+		}
+		if deadline.IsZero() {
+			deadline = startTime.Add(time.Duration(maxHours) * time.Hour)
+		}
+
+		if now.Before(deadline) {
 			continue
 		}
 
@@ -71,7 +79,7 @@ func checkExpiredRentals() {
 		c := consoles[rental.ConsoleID]
 		u := users[rental.UserID]
 
-		totalHours := int(hours)
+		totalHours := int(now.Sub(startTime).Hours())
 		if totalHours < 1 {
 			totalHours = 1
 		}
@@ -96,10 +104,12 @@ func checkExpiredRentals() {
 		}
 
 		modified = true
-		fmt.Printf("⏰ Автоматически завершена аренда %s (превышен лимит времени)\n", rentalID)
+		fmt.Printf("⏰ Автоматически завершена аренда %s\n", rentalID)
 
-		// Notify
 		notifyAutoEnd(rental.UserID, c.Name, u, totalCost, totalHours)
+
+		// Notify waitlist users for this console
+		notifyWaitlist(rental.ConsoleID, c.Name)
 	}
 
 	if modified {
@@ -107,6 +117,25 @@ func checkExpiredRentals() {
 		_ = storage.SaveConsoles(consoles)
 		_ = storage.SaveUsers(users)
 	}
+}
+
+func notifyWaitlist(consoleID, consoleName string) {
+	entries := storage.GetWaitlistForConsole(consoleID)
+	if len(entries) == 0 {
+		return
+	}
+	for _, e := range entries {
+		var chatID int64
+		fmt.Sscanf(e.UserID, "%d", &chatID)
+		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf(
+			"🟢 *Консоль освободилась!*\n\n🎮 %s теперь доступна для аренды.\n\nНажмите 📝 Арендовать чтобы забронировать!",
+			consoleName,
+		))
+		msg.ParseMode = "Markdown"
+		_, _ = botInstance.Send(msg)
+	}
+	storage.ClearWaitlistForConsole(consoleID)
+	fmt.Printf("📢 Уведомлено %d человек из очереди для консоли %s\n", len(entries), consoleName)
 }
 
 // sendRentalReminders sends push notifications before rental expires
@@ -139,8 +168,16 @@ func sendRentalReminders() {
 			continue
 		}
 
-		hours := now.Sub(startTime).Hours()
-		remaining := float64(maxHours) - hours
+		// Use ExpectedEndTime if set
+		var deadline time.Time
+		if rental.ExpectedEndTime != "" {
+			deadline, _ = time.Parse(time.RFC3339, rental.ExpectedEndTime)
+		}
+		if deadline.IsZero() {
+			deadline = startTime.Add(time.Duration(maxHours) * time.Hour)
+		}
+
+		remaining := deadline.Sub(now).Hours()
 		c := consoles[rental.ConsoleID]
 
 		if remaining <= 2 && remaining > 1.5 && !rental.Reminder2hSent {

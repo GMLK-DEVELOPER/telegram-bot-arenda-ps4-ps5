@@ -35,6 +35,17 @@ func main() {
 	// Init storage (create dirs, seed default data)
 	storage.Init()
 
+	// If bot token not set via env, try loading from DB settings
+	if cfg.TelegramBotToken == "" {
+		s := storage.LoadSettings()
+		if s.BotToken != "" {
+			cfg.TelegramBotToken = s.BotToken
+		}
+		if cfg.AdminTelegramID == "" && s.AdminChatID != "" {
+			cfg.AdminTelegramID = s.AdminChatID
+		}
+	}
+
 	// Start web server in background
 	go func() {
 		fmt.Printf("🌐 Запуск веб-панели на порту %s...\n", cfg.WebPort)

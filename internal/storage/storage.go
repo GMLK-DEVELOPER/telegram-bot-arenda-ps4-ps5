@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,6 +14,11 @@ import (
 	"ps4-rental/internal/db"
 	"ps4-rental/internal/models"
 )
+
+func generateID() string { return uuid.New().String() }
+
+// OnNewRequest is called when a new rental request is saved. Set by web layer to avoid import cycle.
+var OnNewRequest func()
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -275,6 +281,22 @@ func SaveRequests(requests map[string]models.RentalRequest) error {
 	})
 }
 
+// SaveRequest saves a single request and fires OnNewRequest hook if it's new/pending.
+func SaveRequest(r models.RentalRequest) error {
+	requests := LoadRequests()
+	_, exists := requests[r.ID]
+	requests[r.ID] = r
+	if err := SaveRequests(requests); err != nil {
+		return err
+	}
+	if !exists && (r.Status == "pending" || r.Status == "pending_approval") {
+		if OnNewRequest != nil {
+			OnNewRequest()
+		}
+	}
+	return nil
+}
+
 // ── Admins (web panel) ────────────────────────────────────────────────────────
 
 func LoadAdmins() map[string]models.Admin {
@@ -303,6 +325,19 @@ func SaveAdmins(admins map[string]models.Admin) error {
 		}
 		return nil
 	})
+}
+
+func CreateAdmin(username, password string) error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	// Update password if username already exists, otherwise insert
+	var existing db.Admin
+	if err := db.DB.Where("username = ?", username).First(&existing).Error; err == nil {
+		return db.DB.Model(&existing).Update("password", string(hashed)).Error
+	}
+	return db.DB.Create(&db.Admin{Username: username, Password: string(hashed), Role: "admin"}).Error
 }
 
 func AdminExists(username, password string) bool {
@@ -350,6 +385,70 @@ func SaveSettings(s models.AdminSettings) error {
 	}
 	return db.DB.Clauses(clause.OnConflict{UpdateAll: true}).
 		Create(&db.SystemConfig{Key: "admin_settings", Value: string(b)}).Error
+}
+
+func IsSetupCompleted() bool {
+	return LoadSettings().SetupCompleted
+}
+
+// ── Waitlist ──────────────────────────────────────────────────────────────────
+
+func LoadWaitlist() []models.WaitlistEntry {
+	var rows []db.Waitlist
+	db.DB.Order("created_at asc").Find(&rows)
+	result := make([]models.WaitlistEntry, 0, len(rows))
+	for _, r := range rows {
+		result = append(result, models.WaitlistEntry{
+			ID:        r.ID,
+			UserID:    r.UserID,
+			ConsoleID: r.ConsoleID,
+			CreatedAt: r.CreatedAt.Format(time.RFC3339),
+			Notified:  r.Notified,
+		})
+	}
+	return result
+}
+
+func AddToWaitlist(userID, consoleID string) error {
+	// Don't add if already in waitlist for this console
+	var count int64
+	db.DB.Model(&db.Waitlist{}).Where("user_id = ? AND console_id = ?", userID, consoleID).Count(&count)
+	if count > 0 {
+		return nil
+	}
+	id := generateID()
+	return db.DB.Create(&db.Waitlist{ID: id, UserID: userID, ConsoleID: consoleID}).Error
+}
+
+func RemoveFromWaitlist(userID, consoleID string) error {
+	return db.DB.Where("user_id = ? AND console_id = ?", userID, consoleID).Delete(&db.Waitlist{}).Error
+}
+
+func IsInWaitlist(userID, consoleID string) bool {
+	var count int64
+	db.DB.Model(&db.Waitlist{}).Where("user_id = ? AND console_id = ?", userID, consoleID).Count(&count)
+	return count > 0
+}
+
+func GetWaitlistForConsole(consoleID string) []models.WaitlistEntry {
+	var rows []db.Waitlist
+	db.DB.Where("console_id = ? AND notified = false", consoleID).Order("created_at asc").Find(&rows)
+	result := make([]models.WaitlistEntry, 0, len(rows))
+	for _, r := range rows {
+		result = append(result, models.WaitlistEntry{
+			ID: r.ID, UserID: r.UserID, ConsoleID: r.ConsoleID,
+			CreatedAt: r.CreatedAt.Format(time.RFC3339),
+		})
+	}
+	return result
+}
+
+func MarkWaitlistNotified(consoleID string) {
+	db.DB.Model(&db.Waitlist{}).Where("console_id = ?", consoleID).Update("notified", true)
+}
+
+func ClearWaitlistForConsole(consoleID string) {
+	db.DB.Where("console_id = ?", consoleID).Delete(&db.Waitlist{})
 }
 
 func GetAdminChatID() string {

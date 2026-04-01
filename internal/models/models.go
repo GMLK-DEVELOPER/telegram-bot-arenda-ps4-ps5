@@ -119,6 +119,10 @@ type AdminSettings struct {
 	ShopLongitude float64 `json:"shop_longitude,omitempty"`
 	ShopAddress   string  `json:"shop_address,omitempty"`
 	ShopTitle     string  `json:"shop_title,omitempty"`
+	// Bot config — stored in DB so setup wizard can set it
+	BotToken string `json:"bot_token,omitempty"`
+	// Setup flag
+	SetupCompleted bool `json:"setup_completed,omitempty"`
 }
 
 func DefaultAdminSettings(adminID string) AdminSettings {
@@ -218,6 +222,15 @@ type SlotReservation struct {
 	TimeSlot string `json:"time_slot"`
 	Status   string `json:"status"`
 	UserID   string `json:"user_id,omitempty"`
+}
+
+// Waitlist entry — user waiting for a console to become free
+type WaitlistEntry struct {
+	ID        string `json:"id"`
+	UserID    string `json:"user_id"`
+	ConsoleID string `json:"console_id"`
+	CreatedAt string `json:"created_at"`
+	Notified  bool   `json:"notified,omitempty"`
 }
 
 // BlockedDates for legacy support

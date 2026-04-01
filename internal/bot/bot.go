@@ -132,6 +132,33 @@ func SendToUser(userID string, text string) {
 	_, _ = botInstance.Send(msg)
 }
 
+// SendLocationRequest sends a message asking the user to share their location.
+// All regular keyboard buttons are replaced with a single "Share location" button.
+func SendLocationRequest(userID string) {
+	if botInstance == nil {
+		return
+	}
+	var chatID int64
+	fmt.Sscanf(userID, "%d", &chatID)
+	if chatID == 0 {
+		return
+	}
+
+	locationBtn := tgbotapi.KeyboardButton{
+		Text:            "📍 Поделиться геолокацией",
+		RequestLocation: true,
+	}
+	kb := tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(locationBtn))
+	kb.ResizeKeyboard = true
+	kb.OneTimeKeyboard = true
+
+	msg := tgbotapi.NewMessage(chatID,
+		"🏠 *Когда будете дома — нажмите кнопку ниже чтобы поделиться геолокацией.*\n\nПосле этого аренда начнётся и таймер запустится. 🎮")
+	msg.ParseMode = "Markdown"
+	msg.ReplyMarkup = kb
+	_, _ = botInstance.Send(msg)
+}
+
 // SendLocationToUser sends a venue (location + title + address) to a user.
 func SendLocationToUser(userID string, lat, lng float64, title, address string) {
 	if botInstance == nil {

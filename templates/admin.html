@@ -449,6 +449,30 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Backup & Restore -->
+            <div class="card mt-3">
+                <div class="card-header"><i class="fas fa-database me-2"></i>Резервное копирование</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-2">Скачать полный бекап всех данных (консоли, пользователи, аренды, настройки)</p>
+                            <a href="/api/backup" class="btn btn-success w-100">
+                                <i class="fas fa-download me-2"></i>Скачать бекап
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-2">Восстановить данные из файла бекапа</p>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="restore-file" accept=".json">
+                                <button class="btn btn-warning" onclick="restoreBackup()">
+                                    <i class="fas fa-upload me-1"></i>Восстановить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ══════════════════════════════════════════════════════════════════ -->
@@ -615,19 +639,42 @@
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
 <!-- SCRIPTS -->
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="/static/js/admin-core.js"></script>
-<script src="/static/js/admin-dashboard.js"></script>
-<script src="/static/js/admin-consoles.js"></script>
-<script src="/static/js/admin-rentals.js"></script>
-<script src="/static/js/admin-requests.js"></script>
-<script src="/static/js/admin-users.js"></script>
-<script src="/static/js/admin-discounts.js"></script>
-<script src="/static/js/admin-ratings.js"></script>
-<script src="/static/js/admin-calendar.js"></script>
-<script src="/static/js/admin-settings.js"></script>
-<script src="/static/js/admin-telegram.js"></script>
-<script src="/static/js/admin-init.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=2"></script>
+<script src="/static/js/admin-core.js?v=2"></script>
+<script src="/static/js/admin-dashboard.js?v=2"></script>
+<script src="/static/js/admin-consoles.js?v=2"></script>
+<script src="/static/js/admin-rentals.js?v=2"></script>
+<script src="/static/js/admin-requests.js?v=2"></script>
+<script src="/static/js/admin-users.js?v=2"></script>
+<script src="/static/js/admin-discounts.js?v=2"></script>
+<script src="/static/js/admin-ratings.js?v=2"></script>
+<script src="/static/js/admin-calendar.js?v=2"></script>
+<script src="/static/js/admin-settings.js?v=2"></script>
+<script src="/static/js/admin-telegram.js?v=2"></script>
+<script src="/static/js/admin-init.js?v=2"></script>
+
+<!-- Map Modal -->
+<div class="modal fade" id="mapModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="map-modal-title">Местоположение клиента</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2">
+        <div id="map-container" style="min-height:400px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <span class="text-muted">Загрузка карты...</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a id="map-open-link" href="#" target="_blank" class="btn btn-primary" style="display:none">
+          <i class="fab fa-google me-1"></i>Открыть в Google Maps
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

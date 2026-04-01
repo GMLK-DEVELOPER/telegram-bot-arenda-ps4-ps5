@@ -30,6 +30,18 @@ func Start() {
 	// Load HTML templates
 	r.LoadHTMLGlob("templates/*.html")
 
+	// Wire up real-time event hook — when bot saves a new request, push SSE to admin browsers
+	storage.OnNewRequest = func() {
+		api.BroadcastEvent("new_request", "1")
+	}
+
+	// Setup middleware — redirect to /setup if first run
+	r.Use(setupMiddleware())
+
+	// ─── Setup routes (public) ────────────────────────────────────────────────
+	r.GET("/setup", showSetup)
+	r.POST("/api/setup", api.CompleteSetup)
+
 	// ─── Public routes ────────────────────────────────────────────────────────
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
@@ -61,6 +73,8 @@ func Start() {
 		// Rentals API
 		auth.GET("/api/rentals", api.GetRentals)
 		auth.POST("/api/rentals/end", api.EndRental)
+		auth.POST("/api/rentals/extend", api.ExtendRental)
+		auth.POST("/api/rentals/start", api.StartRental)
 
 		// Rental requests API
 		auth.GET("/api/rental-requests", api.GetRentalRequests)
@@ -103,6 +117,13 @@ func Start() {
 		auth.GET("/api/telegram-admins", api.GetTelegramAdmins)
 		auth.POST("/api/telegram-admins", api.AddTelegramAdmin)
 		auth.DELETE("/api/telegram-admins", api.RemoveTelegramAdmin)
+
+		// Backup & Restore
+		auth.GET("/api/backup", api.DownloadBackup)
+		auth.POST("/api/restore", api.RestoreBackup)
+
+		// SSE real-time events
+		auth.GET("/api/events", api.SSEStream)
 	}
 
 	addr := "0.0.0.0:" + config.App.WebPort
@@ -163,6 +184,31 @@ func authMiddleware() gin.HandlerFunc {
 		c.Set("username", user)
 		c.Next()
 	}
+}
+
+func setupMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+		// Allow setup routes and static files
+		if path == "/setup" || path == "/api/setup" || strings.HasPrefix(path, "/static") {
+			c.Next()
+			return
+		}
+		if !storage.IsSetupCompleted() {
+			c.Redirect(http.StatusFound, "/setup")
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+func showSetup(c *gin.Context) {
+	if storage.IsSetupCompleted() {
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+	c.HTML(http.StatusOK, "setup.html", nil)
 }
 
 func showAdmin(c *gin.Context) {

@@ -293,6 +293,90 @@ func EndRental(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "success", "total_cost": totalCost, "hours": hours})
 }
 
+func StartRental(c *gin.Context) {
+	var data map[string]interface{}
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	rentalID := strVal(data, "rental_id")
+	rentals := storage.LoadRentals()
+	rental, ok := rentals[rentalID]
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Аренда не найдена"})
+		return
+	}
+	if rental.Status != "booked" {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Аренда не в статусе бронирования"})
+		return
+	}
+
+	// Set status to awaiting_location — rental starts when user shares location
+	rental.Status = "awaiting_location"
+	rentals[rentalID] = rental
+	_ = storage.SaveRentals(rentals)
+
+	// Send location request to user
+	bot.SendLocationRequest(rental.UserID)
+
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
+func ExtendRental(c *gin.Context) {
+	var data map[string]interface{}
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	rentalID := strVal(data, "rental_id")
+	hours := int(floatVal(data, "hours"))
+	if hours < 1 || hours > 72 {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Часы должны быть от 1 до 72"})
+		return
+	}
+
+	rentals := storage.LoadRentals()
+	rental, ok := rentals[rentalID]
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Аренда не найдена"})
+		return
+	}
+	if rental.Status != "active" {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Аренда не активна"})
+		return
+	}
+
+	// Extend ExpectedEndTime
+	var currentEnd time.Time
+	if rental.ExpectedEndTime != "" {
+		currentEnd, _ = time.Parse(time.RFC3339, rental.ExpectedEndTime)
+	}
+	if currentEnd.IsZero() || currentEnd.Before(time.Now()) {
+		currentEnd = time.Now()
+	}
+	newEnd := currentEnd.Add(time.Duration(hours) * time.Hour)
+	rental.ExpectedEndTime = newEnd.Format(time.RFC3339)
+	rental.SelectedHours += hours
+	rental.DurationHours += hours
+
+	consoles := storage.LoadConsoles()
+	console := consoles[rental.ConsoleID]
+	extraCost := float64(hours) * console.RentalPrice
+	rental.ExpectedCost += extraCost
+
+	rentals[rentalID] = rental
+	_ = storage.SaveRentals(rentals)
+
+	// Notify user
+	msg := fmt.Sprintf("⏰ *Аренда продлена!*\n\n🎮 Консоль: *%s*\n➕ Добавлено: *%d ч.*\n📅 Новое время окончания: *%s*\n💰 Доп. стоимость: *%.0f лей*",
+		console.Name, hours, newEnd.Format("02.01.2006 15:04"), extraCost)
+	bot.SendToUser(rental.UserID, msg)
+
+	c.JSON(http.StatusOK, gin.H{"status": "success", "new_end": newEnd.Format("02.01.2006 15:04"), "extra_cost": extraCost})
+}
+
 // ─── Rental Requests ──────────────────────────────────────────────────────────
 
 func GetRentalRequests(c *gin.Context) {
@@ -328,21 +412,18 @@ func ApproveRentalRequest(c *gin.Context) {
 	if hours == 0 {
 		hours = 1
 	}
-	expectedEnd := now.Add(time.Duration(hours) * time.Hour)
 
 	rentals := storage.LoadRentals()
 	rentals[rentalID] = models.Rental{
-		ID:              rentalID,
-		UserID:          req.UserID,
-		ConsoleID:       req.ConsoleID,
-		StartTime:       now.Format(time.RFC3339),
-		ExpectedEndTime: expectedEnd.Format(time.RFC3339),
-		SelectedHours:   hours,
-		DurationHours:   hours,
-		ExpectedCost:    req.TotalCost,
-		TotalCost:       req.TotalCost,
-		Status:          "active",
-		CreatedAt:       now.Format(time.RFC3339),
+		ID:            rentalID,
+		UserID:        req.UserID,
+		ConsoleID:     req.ConsoleID,
+		SelectedHours: hours,
+		DurationHours: hours,
+		ExpectedCost:  req.TotalCost,
+		TotalCost:     req.TotalCost,
+		Status:        "booked",
+		CreatedAt:     now.Format(time.RFC3339),
 	}
 	_ = storage.SaveRentals(rentals)
 
@@ -354,7 +435,7 @@ func ApproveRentalRequest(c *gin.Context) {
 	settings := storage.LoadSettings()
 
 	msg := fmt.Sprintf(
-		"✅ *Ваша заявка одобрена!*\n\n🎮 Консоль: *%s*\n💰 Стоимость: *%.0f лей*\n\n📍 Приходите забирать по адресу ниже 👇",
+		"📌 *Консоль забронирована!*\n\n🎮 Консоль: *%s*\n💰 Стоимость: *%.0f лей*\n⏳ Аренда начнётся когда вы заберёте консоль\n\n📍 Приходите забирать по адресу ниже 👇",
 		console.Name, req.TotalCost,
 	)
 	bot.SendToUser(req.UserID, msg)

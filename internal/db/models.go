@@ -212,3 +212,14 @@ type SystemConfig struct {
 }
 
 func (SystemConfig) TableName() string { return "system_config" }
+
+// Waitlist — users waiting for a console to become free
+type Waitlist struct {
+	ID        string    `gorm:"primaryKey;size:36"`
+	UserID    string    `gorm:"index;size:50;not null"`
+	ConsoleID string    `gorm:"index;size:36;not null"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	Notified  bool      `gorm:"default:false"`
+}
+
+func (Waitlist) TableName() string { return "waitlist" }

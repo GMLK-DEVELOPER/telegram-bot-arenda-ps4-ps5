@@ -145,6 +145,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Init
     loadAll();
-    // Poll for new requests every 10 seconds (lightweight)
-    setInterval(pollRequests, 10000);
+
+    // SSE — real-time push from server when new request arrives
+    function connectSSE() {
+        const es = new EventSource('/api/events');
+        es.addEventListener('new_request', async () => {
+            // Always reload all data so requests are ready when user clicks
+            await loadAll();
+            // Then auto-navigate to requests section
+            showSection('requests');
+        });
+        es.addEventListener('ping', () => {}); // keep-alive
+        es.onerror = () => {
+            es.close();
+            // Reconnect after 5s if connection drops
+            setTimeout(connectSSE, 5000);
+        };
+    }
+    connectSSE();
+
+    // Fallback poll every 30s (in case SSE misses something)
+    setInterval(pollRequests, 30000);
 });

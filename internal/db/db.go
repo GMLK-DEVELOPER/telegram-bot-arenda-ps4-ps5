@@ -51,6 +51,7 @@ func Init(dsn string) error {
 		&UserRating{},
 		&RatingTransaction{},
 		&SystemConfig{},
+		&Waitlist{},
 	); err != nil {
 		return fmt.Errorf("автомиграция: %w", err)
 	}

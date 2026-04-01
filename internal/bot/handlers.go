@@ -203,6 +203,48 @@ func handleLocation(msg *tgbotapi.Message) {
 	lat := msg.Location.Latitude
 	lon := msg.Location.Longitude
 
+	// Check if user has a rental awaiting location (sent by admin via "Начать аренду")
+	rentals := storage.LoadRentals()
+	for rentalID, rental := range rentals {
+		if rental.UserID == userID && rental.Status == "awaiting_location" {
+			consoles := storage.LoadConsoles()
+			console := consoles[rental.ConsoleID]
+
+			hours := rental.SelectedHours
+			if hours == 0 {
+				hours = rental.DurationHours
+			}
+			if hours == 0 {
+				hours = 1
+			}
+			now := time.Now()
+			expectedEnd := now.Add(time.Duration(hours) * time.Hour)
+
+			rental.Status          = "active"
+			rental.StartTime       = now.Format(time.RFC3339)
+			rental.ExpectedEndTime = expectedEnd.Format(time.RFC3339)
+			rental.Location        = &models.Location{Latitude: float64(lat), Longitude: float64(lon)}
+			rentals[rentalID] = rental
+			_ = storage.SaveRentals(rentals)
+
+			// Restore normal keyboard
+			kb := getKeyboardForUser(userID)
+			kb.ResizeKeyboard = true
+			resp := fmt.Sprintf(
+				"▶️ *Аренда началась!*\n\n🎮 Консоль: *%s*\n⏰ Время: *%d ч.*\n📅 Окончание: *%s*\n💰 Стоимость: *%.0f лей*\n\nПриятной игры! 🎮",
+				console.Name, hours, expectedEnd.Format("02.01.2006 в 15:04"), rental.ExpectedCost,
+			)
+			m := tgbotapi.NewMessage(msg.Chat.ID, resp)
+			m.ParseMode = "Markdown"
+			m.ReplyMarkup = kb
+			_, _ = botInstance.Send(m)
+
+			notifyAdmin(fmt.Sprintf("▶️ *Аренда началась*\n\n🎮 %s\n👤 %s\n📍 %.6f, %.6f\n⏰ %s",
+				console.Name, userID, lat, lon, now.Format("02.01 15:04")))
+			return
+		}
+	}
+
 	// Find approved request for this user
 	requests := storage.LoadRequests()
 	var approvedReq *models.RentalRequest
@@ -545,6 +587,30 @@ func handleMyProfile(msg *tgbotapi.Message) {
 		m.ReplyMarkup = markup
 		_, _ = botInstance.Send(m)
 		return
+	}
+
+	// Rental history (last 5 completed)
+	var completedRentals []models.Rental
+	for _, r := range userRentals {
+		if r.Status == "completed" {
+			completedRentals = append(completedRentals, r)
+		}
+	}
+	// Sort by end time descending (simple: last added last, so reverse)
+	if len(completedRentals) > 0 {
+		consoles := storage.LoadConsoles()
+		resp += "\n📋 *История аренд:*\n"
+		shown := 0
+		for i := len(completedRentals) - 1; i >= 0 && shown < 5; i-- {
+			r := completedRentals[i]
+			con := consoles[r.ConsoleID]
+			endDate := r.EndTime
+			if len(endDate) >= 10 {
+				endDate = endDate[:10]
+			}
+			resp += fmt.Sprintf("• %s — %.0f лей (%s)\n", con.Name, r.TotalCost, endDate)
+			shown++
+		}
 	}
 
 	kb := getKeyboardForUser(userID)

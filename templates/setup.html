@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Первоначальная настройка</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  body { background: linear-gradient(135deg, #1a1d23 0%, #2d3748 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; }
+  .setup-card { background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); width: 100%; max-width: 540px; overflow: hidden; }
+  .setup-header { background: linear-gradient(135deg, #0d6efd, #6610f2); padding: 2rem; text-align: center; color: #fff; }
+  .setup-header .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+  .setup-body { padding: 2rem; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-indicators { display: flex; justify-content: center; gap: 8px; margin-bottom: 1.5rem; }
+  .step-dot { width: 10px; height: 10px; border-radius: 50%; background: #dee2e6; transition: background 0.3s; }
+  .step-dot.active { background: #0d6efd; }
+  .step-dot.done { background: #198754; }
+  .form-label { font-weight: 600; color: #495057; }
+  .btn-next { background: linear-gradient(135deg, #0d6efd, #6610f2); border: none; color: #fff; padding: 0.6rem 2rem; border-radius: 10px; font-weight: 600; }
+  .btn-next:hover { opacity: 0.9; color: #fff; }
+  .btn-back { border-radius: 10px; }
+  .hint { font-size: 0.82rem; color: #6c757d; }
+  .success-icon { font-size: 4rem; color: #198754; }
+  .field-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; }
+  .input-icon-wrap { position: relative; }
+  .input-icon-wrap input { padding-left: 38px; }
+  #error-msg { display: none; }
+</style>
+</head>
+<body>
+<div class="setup-card">
+  <div class="setup-header">
+    <div class="icon"><i class="fas fa-gamepad"></i></div>
+    <h4 class="mb-0 fw-bold">PS4 Аренда — Настройка</h4>
+    <p class="mb-0 opacity-75 small">Первоначальная конфигурация системы</p>
+  </div>
+  <div class="setup-body">
+
+    <!-- Step indicators -->
+    <div class="step-indicators">
+      <div class="step-dot active" id="dot-0"></div>
+      <div class="step-dot" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+    </div>
+
+    <!-- Step 0: Welcome -->
+    <div class="step active" id="step-0">
+      <h5 class="fw-bold mb-1">Добро пожаловать! 👋</h5>
+      <p class="text-muted mb-3">Давайте настроим систему аренды консолей за несколько шагов.</p>
+      <ul class="list-unstyled mb-4">
+        <li class="mb-2"><i class="fas fa-building text-primary me-2"></i> Название вашей компании</li>
+        <li class="mb-2"><i class="fab fa-telegram text-info me-2"></i> Токен Telegram бота</li>
+        <li class="mb-2"><i class="fas fa-user-shield text-success me-2"></i> Аккаунт администратора</li>
+      </ul>
+      <button class="btn btn-next w-100" onclick="nextStep()">Начать настройку <i class="fas fa-arrow-right ms-1"></i></button>
+    </div>
+
+    <!-- Step 1: Company info -->
+    <div class="step" id="step-1">
+      <h5 class="fw-bold mb-1">Ваша компания</h5>
+      <p class="text-muted mb-3">Эти данные отображаются клиентам</p>
+      <div class="mb-3">
+        <label class="form-label">Название компании *</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-store field-icon"></i>
+          <input type="text" class="form-control" id="shop-title" placeholder="PS4 Аренда Кишинёв" required>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Адрес</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-map-marker-alt field-icon"></i>
+          <input type="text" class="form-control" id="shop-address" placeholder="ул. Пушкина, 10, Кишинёв">
+        </div>
+        <div class="hint mt-1">Адрес будет отправляться клиентам при одобрении заявки</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-back flex-shrink-0" onclick="prevStep()"><i class="fas fa-arrow-left"></i></button>
+        <button class="btn btn-next flex-grow-1" onclick="validateStep1()">Далее <i class="fas fa-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+
+    <!-- Step 2: Telegram -->
+    <div class="step" id="step-2">
+      <h5 class="fw-bold mb-1">Telegram бот</h5>
+      <p class="text-muted mb-3">Бот принимает заявки от клиентов</p>
+      <div class="mb-3">
+        <label class="form-label">Токен бота *</label>
+        <div class="input-icon-wrap">
+          <i class="fab fa-telegram field-icon"></i>
+          <input type="text" class="form-control" id="bot-token" placeholder="1234567890:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+        </div>
+        <div class="hint mt-1">Получить у <a href="https://t.me/BotFather" target="_blank">@BotFather</a> → /newbot или /mybots</div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Ваш Telegram ID (для уведомлений)</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-id-badge field-icon"></i>
+          <input type="text" class="form-control" id="admin-telegram-id" placeholder="762139684">
+        </div>
+        <div class="hint mt-1">Узнать свой ID: <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a></div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-back flex-shrink-0" onclick="prevStep()"><i class="fas fa-arrow-left"></i></button>
+        <button class="btn btn-next flex-grow-1" onclick="validateStep2()">Далее <i class="fas fa-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+
+    <!-- Step 3: Admin account -->
+    <div class="step" id="step-3">
+      <h5 class="fw-bold mb-1">Аккаунт администратора</h5>
+      <p class="text-muted mb-3">Для входа в веб-панель управления</p>
+      <div class="mb-3">
+        <label class="form-label">Логин *</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-user field-icon"></i>
+          <input type="text" class="form-control" id="admin-username" placeholder="admin">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Пароль *</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock field-icon"></i>
+          <input type="password" class="form-control" id="admin-password" placeholder="Минимум 6 символов">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Повторите пароль *</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock field-icon"></i>
+          <input type="password" class="form-control" id="admin-password2" placeholder="Повторите пароль">
+        </div>
+      </div>
+      <div class="alert alert-danger py-2" id="error-msg"></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-back flex-shrink-0" onclick="prevStep()"><i class="fas fa-arrow-left"></i></button>
+        <button class="btn btn-next flex-grow-1" id="save-btn" onclick="saveSetup()">
+          <i class="fas fa-check me-1"></i> Завершить настройку
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Done -->
+    <div class="step" id="step-4">
+      <div class="text-center py-2">
+        <div class="success-icon mb-3"><i class="fas fa-check-circle"></i></div>
+        <h5 class="fw-bold">Настройка завершена!</h5>
+        <p class="text-muted mb-4">Система готова к работе. Войдите в панель управления.</p>
+        <a href="/login" class="btn btn-next w-100"><i class="fas fa-sign-in-alt me-2"></i>Войти в панель</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentStep = 0;
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('active', i === n));
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === n);
+    d.classList.toggle('done', i < n);
+  });
+  currentStep = n;
+}
+
+function nextStep() { showStep(currentStep + 1); }
+function prevStep() { showStep(currentStep - 1); }
+
+function validateStep1() {
+  const title = document.getElementById('shop-title').value.trim();
+  if (!title) { alert('Введите название компании'); return; }
+  nextStep();
+}
+
+function validateStep2() {
+  const token = document.getElementById('bot-token').value.trim();
+  if (!token) { alert('Введите токен Telegram бота'); return; }
+  nextStep();
+}
+
+async function saveSetup() {
+  const username = document.getElementById('admin-username').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const password2 = document.getElementById('admin-password2').value;
+  const errEl = document.getElementById('error-msg');
+
+  errEl.style.display = 'none';
+  if (!username) { showError('Введите логин'); return; }
+  if (password.length < 6) { showError('Пароль минимум 6 символов'); return; }
+  if (password !== password2) { showError('Пароли не совпадают'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Сохранение...';
+
+  try {
+    const res = await fetch('/api/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shop_title:        document.getElementById('shop-title').value.trim(),
+        shop_address:      document.getElementById('shop-address').value.trim(),
+        bot_token:         document.getElementById('bot-token').value.trim(),
+        admin_telegram_id: document.getElementById('admin-telegram-id').value.trim(),
+        username,
+        password,
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      showStep(4);
+    } else {
+      showError(data.message || 'Ошибка сохранения');
+    }
+  } catch(e) {
+    showError('Ошибка соединения');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i> Завершить настройку';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>

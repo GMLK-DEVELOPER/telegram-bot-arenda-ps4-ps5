@@ -20,6 +20,28 @@ async function loadSettings() {
     settingsData = s;
 }
 
+async function restoreBackup() {
+    const file = document.getElementById('restore-file').files[0];
+    if (!file) { toast('Выберите файл бекапа', 'error'); return; }
+    if (!confirm('Восстановить данные из бекапа? Текущие данные будут перезаписаны.')) return;
+
+    const form = new FormData();
+    form.append('backup', file);
+
+    try {
+        const res = await fetch('/api/restore', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.status === 'success') {
+            toast('Данные восстановлены успешно');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            toast(data.message, data.status === 'partial' ? 'warning' : 'error');
+        }
+    } catch(e) {
+        toast('Ошибка восстановления', 'error');
+    }
+}
+
 function openGoogleMaps() {
     window.open('https://www.google.com/maps', '_blank');
     document.getElementById('location-status').textContent = 'Найдите место → ПКМ → "Что здесь?" → скопируйте координаты';

@@ -91,7 +91,59 @@ func handleCallback(call *tgbotapi.CallbackQuery) {
 
 	case data == "rating_stats":
 		handleRatingStats(call, userID)
+
+	case strings.HasPrefix(data, "waitlist_"):
+		handleWaitlistCallback(call, userID)
 	}
+}
+
+func handleWaitlistCallback(call *tgbotapi.CallbackQuery, userID string) {
+	// data: waitlist_join_<consoleID> or waitlist_leave_<consoleID>
+	parts := strings.SplitN(call.Data, "_", 3)
+	if len(parts) < 3 {
+		answerCallback(call.ID, "❌ Ошибка", false)
+		return
+	}
+	action := parts[1]    // join or leave
+	consoleID := parts[2] // consoleID (UUID with dashes)
+
+	if action == "join" {
+		_ = storage.AddToWaitlist(userID, consoleID)
+		answerCallback(call.ID, "🔔 Вы в очереди! Уведомим когда консоль освободится.", false)
+	} else {
+		_ = storage.RemoveFromWaitlist(userID, consoleID)
+		answerCallback(call.ID, "Вы вышли из очереди.", false)
+	}
+
+	// Refresh the unavailable console view
+	consoles := storage.LoadConsoles()
+	c, ok := consoles[consoleID]
+	if !ok {
+		return
+	}
+	info := getConsoleRentalInfo(consoleID)
+	var text string
+	if info != nil {
+		end := info["estimated_end_time"].(time.Time)
+		text = fmt.Sprintf("*%s* (%s)\n\n🔴 *Статус:* Занята\n📅 *Занята до:* %s\n\n💰 Цена аренды: %.0f лей/час",
+			c.Name, c.Model, end.Format("02.01.2006 15:04"), c.RentalPrice)
+	} else {
+		text = fmt.Sprintf("*%s* (%s)\n\n🔴 *Статус:* Занята\n💰 Цена аренды: %.0f лей/час", c.Name, c.Model, c.RentalPrice)
+	}
+
+	inQueue := storage.IsInWaitlist(userID, consoleID)
+	var queueBtn tgbotapi.InlineKeyboardButton
+	if inQueue {
+		queueBtn = tgbotapi.NewInlineKeyboardButtonData("✅ Вы в очереди (отменить)", "waitlist_leave_"+consoleID)
+		text += "\n\n🔔 *Вы в очереди* — получите уведомление когда освободится"
+	} else {
+		queueBtn = tgbotapi.NewInlineKeyboardButtonData("🔔 Встать в очередь", "waitlist_join_"+consoleID)
+	}
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(queueBtn),
+		tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад к выбору", "back_to_selection")),
+	)
+	editOrSend(call, text, markup)
 }
 
 // ─── Console selection ───────────────────────────────────────────────────────
@@ -124,7 +176,17 @@ func handleConsoleSelection(call *tgbotapi.CallbackQuery, userID string) {
 			text = fmt.Sprintf("*%s* (%s)\n\n🔴 *Статус:* Занята\n💰 Цена аренды: %.0f лей/час", c.Name, c.Model, c.RentalPrice)
 		}
 
+		inQueue := storage.IsInWaitlist(userID, consoleID)
+		var queueBtn tgbotapi.InlineKeyboardButton
+		if inQueue {
+			queueBtn = tgbotapi.NewInlineKeyboardButtonData("✅ Вы в очереди (отменить)", "waitlist_leave_"+consoleID)
+			text += "\n\n🔔 *Вы в очереди* — получите уведомление когда консоль освободится"
+		} else {
+			queueBtn = tgbotapi.NewInlineKeyboardButtonData("🔔 Встать в очередь", "waitlist_join_"+consoleID)
+		}
+
 		markup := tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(queueBtn),
 			tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад к выбору", "back_to_selection"),
 			),
@@ -488,9 +550,7 @@ func handleFinalRentConfirmation(call *tgbotapi.CallbackQuery) {
 	var resp string
 	if isApprovalRequired() {
 		rentalData.Status = "pending_approval"
-		requests := storage.LoadRequests()
-		requests[rentalID] = rentalData
-		_ = storage.SaveRequests(requests)
+		_ = storage.SaveRequest(rentalData)
 
 		resp = fmt.Sprintf("📋 *Заявка на аренду отправлена!*\n\n🎮 *Консоль:* %s\n📅 *Период:* %s - %s\n💰 *Стоимость:* %.0f лей\n\n⏳ Ожидайте подтверждения от администратора",
 			c.Name, selectedDateObj.Format("02.01.2006"), endDateObj.Format("02.01.2006"), totalCost)
@@ -625,8 +685,7 @@ func handleConfirmRent(call *tgbotapi.CallbackQuery) {
 	if isApprovalRequired() {
 		// Create request
 		requestID := uuid.New().String()
-		requests := storage.LoadRequests()
-		requests[requestID] = models.RentalRequest{
+		_ = storage.SaveRequest(models.RentalRequest{
 			ID:            requestID,
 			UserID:        userID,
 			ConsoleID:     consoleID,
@@ -634,8 +693,7 @@ func handleConfirmRent(call *tgbotapi.CallbackQuery) {
 			ExpectedCost:  float64(selectedHours) * c.RentalPrice,
 			RequestTime:   time.Now().Format(time.RFC3339),
 			Status:        "pending",
-		}
-		_ = storage.SaveRequests(requests)
+		})
 
 		users := storage.LoadUsers()
 		user := users[userID]
